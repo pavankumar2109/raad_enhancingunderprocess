@@ -18,13 +18,13 @@ export const CopilotPage: React.FC = () => {
     {
       id: 'initial-user-msg',
       sender: 'user',
-      text: 'Rahul is unavailable due to an emergency medical leave starting immediately. Reassign all his active tasks to prevent SLA breaches.',
+      text: 'Senior Engineer Rahul Sharma is unavailable due to an emergency medical leave starting immediately. Provide an executive reassignment strategy to eliminate all SLA breach risks.',
       timestamp: 'Today 10:42 AM',
     },
     {
       id: 'initial-plan-msg',
       sender: 'assistant',
-      text: "I analyzed Rahul Sharma's active queue and identified 4 affected tasks at immediate risk. Total projected unmitigated risk: $42,000 SLA penalty exposure within a 14h critical window.",
+      text: "MEMORANDUM FOR OPERATIONS LEADERSHIP\n\nSUBJECT: Workload Deficit & SLA Mitigation Assessment\n\n1. EXECUTIVE DIRECTIVE:\nSenior Engineer Rahul Sharma is logged as unavailable due to emergency leave. Analysis of active queues reveals 4 critical tasks requiring immediate mitigation.\n\n2. FINANCIAL & COMPLIANCE GOVERNANCE:\nTotal projected unmitigated risk: $42,000 in SLA penalty exposure within a 14-hour critical decision window.\n\n3. RECOMMENDED STRATEGIC ACTION:\nReview and authorize RAAD Reallocation Plan #RP-8021 below to re-distribute active tasks with zero predicted SLA breach.",
       timestamp: 'Today 10:42 AM',
       planData: mockReallocationPlan,
     }
@@ -36,10 +36,10 @@ export const CopilotPage: React.FC = () => {
   const [appliedNotice, setAppliedNotice] = useState('');
 
   const suggestedPrompts = [
-    "Reassign Rahul's critical tasks",
-    "Simulate Q4 platform engineering capacity",
-    "Find replacements for backend on-call",
-    "Analyze skill gaps in Kubernetes v1.28"
+    "Audit critical SLA risks across engineering queues",
+    "Simulate Q4 platform engineering capacity balance",
+    "Evaluate skill gap vulnerabilities in Nordic cluster",
+    "Reassign Rahul's critical tasks to prevent SLA default"
   ];
 
   const handleSendPrompt = async (promptText?: string) => {
@@ -83,34 +83,34 @@ export const CopilotPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
-            ✦ AUTONOMOUS WORKFORCE ORCHESTRATION
+          <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded">
+            ✦ AUTONOMOUS ENTERPRISE EXECUTIVE AGENT
           </span>
           <h1 className="text-3xl font-extrabold text-slate-900 font-serif tracking-tight mt-1">
-            AI Workforce Copilot
+            RAAD Executive Agent
           </h1>
           <p className="text-xs text-slate-600 mt-1 max-w-3xl">
-            Intelligent assistant for real-time allocation, incident deflection, and predictive capacity balancing.
+            Autonomous formal agent for real-time resource orchestration, SLA risk governance, and executive decision support.
           </p>
         </div>
 
         {/* Engine Telemetry Card */}
         <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-4 text-xs shadow-2xs">
           <div>
-            <span className="text-[10px] text-slate-400 font-mono block">ENGINE</span>
-            <span className="font-bold text-slate-900 font-mono">RAAD-Nexus v4.2</span>
+            <span className="text-[10px] text-slate-400 font-mono block">AGENT ENGINE</span>
+            <span className="font-bold text-slate-900 font-mono">RAAD Executive v5.0</span>
           </div>
           <div className="border-l border-slate-200 pl-3">
             <span className="text-[10px] text-slate-400 font-mono block">LATENCY</span>
-            <span className="font-bold text-slate-900 font-mono">120ms</span>
+            <span className="font-bold text-slate-900 font-mono">95ms</span>
           </div>
           <div className="border-l border-slate-200 pl-3">
             <span className="text-[10px] text-slate-400 font-mono block">CONFIDENCE</span>
-            <span className="font-bold text-emerald-700 font-mono">98.4%</span>
+            <span className="font-bold text-emerald-700 font-mono">99.2%</span>
           </div>
           <div className="border-l border-slate-200 pl-3">
-            <span className="text-[10px] uppercase font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-mono">
-              Audit Active
+            <span className="text-[10px] uppercase font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded font-mono">
+              Formal Mode
             </span>
           </div>
         </div>
@@ -358,7 +358,7 @@ export const CopilotPage: React.FC = () => {
         {isTyping && (
           <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
             <div className="w-4 h-4 border-2 border-amber-700 border-t-transparent rounded-full animate-spin"></div>
-            <span>RAAD-Nexus v4.2 is reasoning across 32 active engineer telemetry graphs...</span>
+            <span>RAAD Executive Agent v5.0 is evaluating operational governance matrix & 32 telemetry vectors...</span>
           </div>
         )}
       </div>
@@ -381,8 +381,8 @@ export const CopilotPage: React.FC = () => {
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendPrompt()}
-              placeholder="Ask RAAD anything... (e.g., 'What happens if Arun takes PTO next Tuesday?')"
-              className="w-full bg-transparent text-xs text-slate-900 placeholder-slate-400 focus:outline-none"
+              placeholder="Query RAAD Executive Agent... (e.g., 'Provide formal risk assessment for Q4 on-call coverage')"
+              className="w-full bg-transparent text-xs text-slate-900 placeholder-slate-400 focus:outline-none font-medium"
             />
 
             <div className="flex items-center gap-2 ml-3">
@@ -399,8 +399,8 @@ export const CopilotPage: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 font-mono">
-            <span>RAAD Assistant adheres to SOC2 Type II compliance & internal data residency.</span>
-            <span>Engine: Allocator v4.2 • Context Window: 32k</span>
+            <span>RAAD Executive Agent operates under strict Enterprise Governance, SOC2 Type II compliance & ISO-27001 standards.</span>
+            <span>Engine: RAAD Executive v5.0 • Formal Communication Protocol Active</span>
           </div>
         </div>
       </div>

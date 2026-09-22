@@ -209,7 +209,7 @@ class ApiService {
       return {
         id: `msg-${Date.now()}`,
         sender: 'assistant',
-        text: 'I analyzed Rahul Sharma\'s active queue and identified 4 affected tasks at immediate risk. Total projected unmitigated risk: $42,000 SLA penalty exposure within a 14h critical window.',
+        text: 'MEMORANDUM FOR OPERATIONS LEADERSHIP\n\nSUBJECT: Emergency Resource Reallocation Assessment — Senior Engineer Availability Deficit\n\n1. EXECUTIVE DIRECTIVE:\nFollowing real-time telemetry analysis of senior personnel queues, an immediate workload imbalance has been detected. Senior Engineer Rahul Sharma is unavailable due to an emergency medical leave. 4 active tasks are identified as critical-path deliverables.\n\n2. FINANCIAL & COMPLIANCE RISK GOVERNANCE:\n- Total Projected Financial Exposure: $42,000 in contractual SLA penalties.\n- Critical Incident Window: 14 hours remaining to SLA default.\n- Risk Mitigation Status: Highly actionable via secondary load redistribution.\n\n3. STRATEGIC RECOMMENDATION:\nExecute RAAD Reallocation Plan #RP-8021 immediately to redistribute workload across high-fit engineers (Arun Kumar and Priya Sundaram).\n\nRespectfully submitted,\nRAAD Autonomous Executive Agent',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         planData: mockReallocationPlan
       };
@@ -219,7 +219,7 @@ class ApiService {
       return {
         id: `msg-${Date.now()}`,
         sender: 'assistant',
-        text: 'ANSWER:\nCurrently 8 tickets are exposed to SLA risks. 5 critical (<4h remaining) and 3 approaching breaches.\n\nWHY:\nPlatform Engineering has a high task density (2.2 tasks/engineer) while 2 engineers are on scheduled leave.\n\nEVIDENCE:\nTicket #104 (Distributed Cache) has 3h 15m remaining assigned to Rahul (95% load).\n\nRECOMMENDED ACTION:\nExecute RAAD Reallocation Plan #RP-8021 to shift tasks to Arun Kumar & Priya Sundaram.\n\nIMPACT:\nSLA Compliance increases from 81.9% to 98.6% with zero breaches.',
+        text: 'MEMORANDUM FOR OPERATIONS LEADERSHIP\n\nSUBJECT: Comprehensive SLA Breach & Queue Risk Assessment\n\n1. EXECUTIVE DIRECTIVE:\nOperational telemetry indicates 8 active tickets currently exposed to SLA non-compliance risks across the engineering matrix. 5 critical tickets possess under 4 hours remaining SLA window.\n\n2. OPERATIONAL RATIONALE:\nTask density in Platform Engineering has reached 2.2 tasks per active engineer, compounded by concurrent planned PTO cycles.\n\n3. EMPIRICAL TELEMETRY EVIDENCE:\nTicket #104 (Distributed Cache Architecture) exhibits 3h 15m remaining window, assigned to personnel operating at 95% utilization load.\n\n4. STRATEGIC ACTION & GOVERNANCE:\nAuthorize immediate load balancing under RAAD Governance Protocol #RP-8021 to transfer high-urgency tickets to unencumbered senior personnel.\n\n5. PROJECTED ENTERPRISE IMPACT:\nContractual SLA compliance will restore from 81.9% to 98.6% with 0 predicted breach incidents.\n\nRespectfully submitted,\nRAAD Autonomous Executive Agent',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
     }
@@ -228,7 +228,7 @@ class ApiService {
       return {
         id: `msg-${Date.now()}`,
         sender: 'assistant',
-        text: 'ANSWER:\nPrimary skill gap detected in Kubernetes Ingress Controller Failover & Go Runtime Latency Tuning.\n\nWHY:\nOnly 2 engineers hold >90% proficiency in distributed system failovers for Nordic region.\n\nEVIDENCE:\nNordic Cluster ID NORDIC-09 telemetry shows 14% skill deficit on security mTLS mesh.\n\nRECOMMENDED ACTION:\nInitiate cross-training pod with Priya Sundaram leading Go optimization workshops.\n\nIMPACT:\nEliminates single-point-of-failure dependencies on emergency callouts.',
+        text: 'MEMORANDUM FOR OPERATIONS LEADERSHIP\n\nSUBJECT: Workforce Competency Matrix & Skill Gap Audit Report\n\n1. EXECUTIVE SUMMARY:\nA critical skill deficit has been identified in Kubernetes Ingress Controller Failover and Go Runtime Latency Optimization.\n\n2. GOVERNANCE & RISK RATIONALE:\nOnly 2 engineers hold >90% proficiency certification in distributed failover protocols across the Nordic region, creating a single-point-of-failure vulnerability.\n\n3. EMPIRICAL TELEMETRY EVIDENCE:\nCluster telemetry for NORDIC-09 confirms a 14% skill deficit regarding mTLS mesh configuration during surge traffic conditions.\n\n4. RECOMMENDED STRATEGIC ACTION:\nEstablish a targeted cross-training sprint pod led by Staff Engineer Priya Sundaram to upskill 4 mid-level backend engineers.\n\n5. PROJECTED ENTERPRISE IMPACT:\nEliminates key-person dependency risks and increases team resiliency index by 38% across emergency callout rotations.\n\nRespectfully submitted,\nRAAD Autonomous Executive Agent',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
     }
@@ -236,7 +236,7 @@ class ApiService {
     return {
       id: `msg-${Date.now()}`,
       sender: 'assistant',
-      text: `ANSWER:\nAnalyzed workforce telemetry across all 100 active engineers for prompt: "${question}".\n\nWHY:\nRAAD Engine v4.2 telemetry indicates optimal system health with 90 available headcount.\n\nEVIDENCE:\nSystem latency is 120ms with 98.4% allocation confidence.\n\nRECOMMENDED ACTION:\nReview active workload allocations table or run a capacity simulation.\n\nIMPACT:\nMaintains 75% unblocked headroom across Nordic Enterprise Ops.`,
+      text: `MEMORANDUM FOR OPERATIONS LEADERSHIP\n\nSUBJECT: Operational Intelligence Query Response — "${question}"\n\n1. EXECUTIVE SUMMARY:\nThe RAAD Executive Agent has conducted a full-spectrum telemetry audit across all 100 active engineering profiles in response to your inquiry.\n\n2. SYSTEM METRICS & COMPLIANCE:\n- Operational Health Index: 98.4% Confidence\n- System Latency Benchmark: 120ms\n- Headroom Capacity Buffer: 75% Unblocked Headroom\n\n3. STRATEGIC ACTIONABLE RECOMMENDATION:\nProceed with standard operational workflows. No immediate emergency reallocation is required at this junction.\n\nRespectfully submitted,\nRAAD Autonomous Executive Agent`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
   }
