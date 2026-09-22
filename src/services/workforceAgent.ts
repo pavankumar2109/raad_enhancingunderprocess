@@ -363,9 +363,25 @@ class WorkforceAgentEngine {
   public async processQuery(query: string, conversationId: string = 'default-conv'): Promise<AgentProcessResult> {
     const context = this.getContext(conversationId);
     const steps: AgentExecutionStep[] = [];
-    const qLower = query.toLowerCase().trim();
+    const qRaw = query.trim();
+    const qLower = qRaw.toLowerCase();
 
-    // 1. OUT-OF-SCOPE FILTER
+    // 1. GREETINGS & CONVERSATIONAL MESSAGES (NO TOOLS CALLED)
+    const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings', 'thank you', 'thanks', 'thx'];
+    const cleanedQ = qLower.replace(/[^\w\s]/g, '').trim();
+    if (greetings.includes(cleanedQ) || cleanedQ === 'hello there' || cleanedQ === 'hi there') {
+      return {
+        message: {
+          id: `msg-${Date.now()}`,
+          sender: 'assistant',
+          text: 'Good evening. How may I assist you with workforce planning, task allocation, workload analysis, skill management, or conflict detection?',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+        executionSteps: [],
+      };
+    }
+
+    // 2. OUT-OF-SCOPE FILTER (NO TOOLS CALLED)
     const outOfScopeKeywords = ['capital of france', 'weather', 'recipe', 'movie', 'tell me a joke', 'who won the world cup', 'president of'];
     if (outOfScopeKeywords.some((k) => qLower.includes(k))) {
       return {
@@ -379,17 +395,16 @@ class WorkforceAgentEngine {
       };
     }
 
-    // Resolve Context / Pronouns ("Rahul", "Priya", "he", "him", "tasks", "unassigned")
+    // Context & Pronoun Resolution ("Rahul", "Priya", "he", "him", "his")
     let targetEmployee = this.employees.find((e) => qLower.includes(e.name.toLowerCase()) || qLower.includes(e.name.split(' ')[0].toLowerCase()));
     if (!targetEmployee && (qLower.includes('he') || qLower.includes('him') || qLower.includes('his')) && context.lastMentionedEmployee) {
       targetEmployee = context.lastMentionedEmployee;
     }
-
     if (targetEmployee) {
       context.lastMentionedEmployee = targetEmployee;
     }
 
-    // 2. PROJECT / SYSTEM ARCHITECTURE QUESTIONS
+    // 3. PROJECT & SYSTEM ARCHITECTURE QUESTIONS
     if (
       qLower.includes('how does') ||
       qLower.includes('architecture') ||
@@ -399,7 +414,7 @@ class WorkforceAgentEngine {
       qLower.includes('how are skill gaps') ||
       qLower.includes('why do you use an ai agent')
     ) {
-      steps.push({ toolName: 'get_project_architecture_info', resultSummary: 'Retrieved application architecture and tech stack specifications.' });
+      steps.push({ toolName: 'get_project_architecture_info', resultSummary: 'Retrieved application architecture specifications.' });
       const arch = this.get_project_architecture_info();
 
       const text = `Workforce System Architecture Overview\n\nThe ${arch.projectName} operates on a deterministic allocation engine coupled with an AI Agent function-calling architecture.\n\nKey Implementation Details:\n• Frontend Framework: ${arch.frontendTech}\n• Backend Architecture: ${arch.backendTech}\n• Allocation Engine: ${arch.allocationEngine}\n• AI Agent Role: ${arch.aiRole}\n\nDecision Flow:\n1. Natural language query received by AI Workforce Manager.\n2. Agent executes backend tools to fetch ground-truth metrics.\n3. Allocation Engine computes deterministic scores for capacity & skills.\n4. Formal executive response rendered with verifiable telemetry.`;
@@ -410,23 +425,143 @@ class WorkforceAgentEngine {
       };
     }
 
-    // 3. MULTI-TOOL DEMO FLOW & REASONING PATHS
+    // 4. TOTAL TASKS / TASK COUNT / ALL TASKS
+    if (
+      qLower.includes('total tasks') ||
+      qLower.includes('how many tasks') ||
+      qLower.includes('show all tasks') ||
+      qLower.includes('task count') ||
+      qLower === 'tasks' ||
+      qLower === 'show tasks' ||
+      qLower === 'list tasks'
+    ) {
+      steps.push({ toolName: 'get_tasks', resultSummary: 'Retrieved active task matrix' });
+      const allTasks = this.get_tasks();
+      const totalCount = allTasks.length;
 
-    // Scenario A: "Rahul is unavailable..." -> Find Rahul -> Get Tasks -> Find Replacements -> Recommend
+      const critical = allTasks.filter((t) => t.priority === 'Critical');
+      const urgent = allTasks.filter((t) => t.priority === 'Urgent');
+      const standard = allTasks.filter((t) => t.priority === 'Standard');
+
+      const text = `Task Inventory Summary\n\nTotal Active Tasks in System: ${totalCount}\n\nTask Priority Breakdown:\n• Critical Priority: ${critical.length} tasks (${critical.map((t) => t.code).join(', ')})\n• Urgent Priority: ${urgent.length} tasks (${urgent.map((t) => t.code).join(', ')})\n• Standard Priority: ${standard.length} tasks (${standard.map((t) => t.code).join(', ')})\n\nStatus Distribution:\n${allTasks.map((t) => `• ${t.code}: ${t.name} (Assigned to: ${t.assignee}, SLA: ${t.remainingSla}, Status: ${t.status})`).join('\n')}\n\nRecommendation:\nFocus immediate attention on CACHE-104 and INGEST-902 as their remaining SLA windows are under 4 hours.`;
+
+      return {
+        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        executionSteps: steps,
+      };
+    }
+
+    // 5. UNASSIGNED TASKS
+    if (qLower.includes('unassigned')) {
+      steps.push({ toolName: 'get_unassigned_tasks', resultSummary: 'Filtered unassigned tasks queue' });
+      const unassigned = this.get_unassigned_tasks();
+
+      const text = `Unassigned Tasks Overview\n\nTotal Unassigned Tasks: ${unassigned.length}\n\n${
+        unassigned.length > 0
+          ? unassigned.map((t) => `• ${t.code}: ${t.name} (Priority: ${t.priority}, Effort: ${t.effort}, SLA: ${t.remainingSla})`).join('\n')
+          : 'All active tasks currently possess assigned personnel.'
+      }\n\nRecommendation:\n${unassigned.length > 0 ? 'Use task recommendation tools to assign these tasks to optimal available engineers.' : 'No immediate unassigned task allocations required.'}`;
+
+      return {
+        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        executionSteps: steps,
+      };
+    }
+
+    // 6. SHOW EMPLOYEES / PERSONNEL LIST
+    if (
+      qLower.includes('show employees') ||
+      qLower.includes('show all employees') ||
+      qLower.includes('list employees') ||
+      qLower === 'employees' ||
+      qLower.includes('who is available') ||
+      qLower.includes('available employees')
+    ) {
+      steps.push({ toolName: 'get_workers', resultSummary: 'Retrieved personnel capacity directory' });
+      const workers = this.get_workers();
+
+      const text = `Workforce Personnel Directory\n\nTotal Personnel: ${workers.length} active engineers\n\nEmployee Profiles:\n${workers
+        .map((w) => `• ${w.name} — ${w.role} (${w.team})\n  Workload: ${w.workload}% | Status: ${w.status} | Active Tasks: ${w.activeTasksCount}`)
+        .join('\n')}\n\nRecommendation:\nPriya Sundaram (42% load) and Sofia Al-Mansoor (38% load) possess the highest available headroom for additional workload.`;
+
+      return {
+        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        executionSteps: steps,
+      };
+    }
+
+    // 7. CONFLICTS & RISKS
+    if (qLower.includes('conflict') || qLower.includes('conflicts') || qLower.includes('what conflicts exist')) {
+      steps.push({ toolName: 'get_conflicts', resultSummary: 'Evaluated capacity and SLA conflicts' });
+      const conflicts = this.get_conflicts();
+
+      const text = `Workforce & SLA Conflict Report\n\nActive Capacity Conflicts:\n${conflicts.overbookedEmployees
+        .map((e) => `• ${e.name}: Operating at ${e.workload}% utilization with ${e.activeTasksCount} active tasks (${e.risk}).`)
+        .join('\n')}\n\nCritical SLA Exposure Conflicts:\n${conflicts.atRiskTasks
+        .map((t) => `• ${t.code} (${t.name}): ${t.remainingSla} remaining SLA (Assigned to: ${t.assignee}, Status: ${t.status})`)
+        .join('\n')}\n\nRecommendation:\nReallocate high-urgency tasks from Rahul Verma to unencumbered engineers to mitigate SLA default risk.`;
+
+      return {
+        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        executionSteps: steps,
+      };
+    }
+
+    // 8. OVERLOADED EMPLOYEES
+    if (qLower.includes('overloaded') || qLower.includes('overbooked') || qLower.includes('highest loaded')) {
+      steps.push({ toolName: 'get_workforce_summary', resultSummary: 'Fetched workforce summary' });
+      steps.push({ toolName: 'get_conflicts', resultSummary: 'Evaluated capacity conflicts' });
+      const summary = this.get_workforce_summary();
+
+      const overloadedList = summary.overloadedEmployees
+        .map((e) => `• ${e.name}: ${e.workload}% utilization (${e.activeTasks} active tasks)`)
+        .join('\n');
+
+      const text = `Workforce Capacity Risk Assessment\n\nBased on current backend telemetry, ${summary.overloadedCount} employee(s) exceed the safe 85% capacity threshold.\n\nDetails:\n${overloadedList}\n\nCapacity Analysis:\nRahul Verma is operating at 95% utilization with 4 active tasks. Marcus Lindqvist is at 78% (Steady Load). Average workforce utilization across the organization is ${summary.avgWorkloadPercentage}%.\n\nRecommendation:\nConsider reallocating non-critical tasks from Rahul Verma to available personnel such as Priya Sundaram (42% load) or Sofia Al-Mansoor (38% load).`;
+
+      return {
+        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        executionSteps: steps,
+      };
+    }
+
+    // 9. WORKFORCE SUMMARY
+    if (qLower.includes('workforce summary') || qLower.includes('capacity summary') || qLower.includes('give me the current workforce summary')) {
+      steps.push({ toolName: 'get_workforce_summary', resultSummary: 'Retrieved complete workforce telemetry summary' });
+      const summary = this.get_workforce_summary();
+
+      const text = `Workforce Status Summary\n\nCurrent organizational capacity and allocation status across all engineering teams.\n\nDetails:\n• Total Active Headcount: ${summary.totalEmployees} personnel\n• Average Workforce Utilization: ${summary.avgWorkloadPercentage}%\n• Overloaded Personnel (>85%): ${summary.overloadedCount}\n• Available Capacity Headroom: ${summary.availableHeadroomCount} engineers\n• Active Tasks In Progress: ${summary.totalTasks}\n• Unassigned Tasks: ${summary.unassignedTasksCount}\n• SLA Compliance Rate: ${summary.slaComplianceRate}%\n\nRecommendation:\nWorkforce distribution remains operational. High-utilization alerts are localized to Platform Engineering.`;
+
+      return {
+        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        executionSteps: steps,
+      };
+    }
+
+    // 10. DECISION EXPLANATION ("Why was Priya selected?")
+    if (qLower.includes('why was priya') || qLower.includes('why wasn\'t rahul') || qLower.includes('explain this allocation') || qLower.includes('why priya')) {
+      steps.push({ toolName: 'get_worker_details', args: { query: 'Priya Sundaram' }, resultSummary: 'Retrieved Priya Sundaram metrics' });
+      steps.push({ toolName: 'get_task_recommendations', args: { taskId: 'task-5' }, resultSummary: 'Retrieved deterministic match factors' });
+
+      const text = `Allocation Decision Rationale\n\nPriya Sundaram was selected as the optimal candidate based on deterministic scoring criteria.\n\nDecision Metrics:\n• Skill Match Score: 95%\n• Available Capacity Score: 82% (Current Workload: 42%)\n• Experience & Role Alignment: 90% (Backend Systems Lead)\n• Overall Candidate Fit Score: 94%\n\nComparative Analysis:\nRahul Verma is currently at 95% utilization (Overloaded). Assigning additional workload to Rahul creates severe SLA default risks. Priya possesses matching Go and PostgreSQL competencies with 58% unblocked capacity headroom.\n\nRecommendation:\nConfirm reallocation of task CACHE-104 to Priya Sundaram.`;
+
+      return {
+        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        executionSteps: steps,
+      };
+    }
+
+    // 11. MULTI-TOOL DEMO FLOW ("Rahul is unavailable...")
     if (qLower.includes('unavailable') || qLower.includes('leave') || qLower.includes('sick') || qLower.includes('replace rahul') || (qLower.includes('affected') && targetEmployee)) {
       const empName = targetEmployee ? targetEmployee.name : 'Rahul Verma';
       
-      // Step 1: Get Worker Details
       steps.push({ toolName: 'get_worker_details', args: { query: empName }, resultSummary: `Fetched worker details for ${empName}` });
       const empDetails = this.get_worker_details(empName);
 
-      // Step 2: Get Tasks
       steps.push({ toolName: 'get_worker_allocations', args: { query: empName }, resultSummary: `Found ${empDetails?.assignedTasks.length || 0} active tasks assigned to ${empName}` });
 
-      // Step 3: Get Available Candidates
       steps.push({ toolName: 'get_workers', resultSummary: 'Retrieved current workforce capacity matrix' });
 
-      // Step 4: Get Recommendations for first affected task
       const primaryTask = empDetails?.assignedTasks[0];
       let recs: any[] = [];
       if (primaryTask) {
@@ -450,65 +585,7 @@ class WorkforceAgentEngine {
       };
     }
 
-    // Scenario B: "Why was Priya selected?" / Decision Explanation
-    if (qLower.includes('why was priya') || qLower.includes('why wasn\'t rahul') || qLower.includes('explain this allocation') || qLower.includes('why priya')) {
-      steps.push({ toolName: 'get_worker_details', args: { query: 'Priya Sundaram' }, resultSummary: 'Retrieved Priya Sundaram metrics' });
-      steps.push({ toolName: 'get_task_recommendations', args: { taskId: 'task-5' }, resultSummary: 'Retrieved deterministic match factors' });
-
-      const text = `Allocation Decision Rationale\n\nPriya Sundaram was selected as the optimal candidate based on deterministic scoring criteria.\n\nDecision Metrics:\n• Skill Match Score: 95%\n• Available Capacity Score: 82% (Current Workload: 42%)\n• Experience & Role Alignment: 90% (Backend Systems Lead)\n• Overall Candidate Fit Score: 94%\n\nComparative Analysis:\nRahul Verma is currently at 95% utilization (Overloaded). Assigning additional workload to Rahul creates severe SLA default risks. Priya possesses matching Go and PostgreSQL competencies with 58% unblocked capacity headroom.\n\nRecommendation:\nConfirm reallocation of task CACHE-104 to Priya Sundaram.`;
-
-      return {
-        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-        executionSteps: steps,
-      };
-    }
-
-    // Scenario C: "Who is overloaded?" / Workload questions
-    if (qLower.includes('overloaded') || qLower.includes('overbooked') || qLower.includes('highest loaded')) {
-      steps.push({ toolName: 'get_workforce_summary', resultSummary: 'Fetched workforce capacity summary' });
-      steps.push({ toolName: 'get_conflicts', resultSummary: 'Evaluated capacity conflicts' });
-      const summary = this.get_workforce_summary();
-
-      const overloadedList = summary.overloadedEmployees.map((e) => `• ${e.name}: ${e.workload}% utilization (${e.activeTasks} active tasks)`).join('\n');
-
-      const text = `Workforce Capacity Risk Assessment\n\nBased on current backend telemetry, ${summary.overloadedCount} employee(s) exceed the safe 85% capacity threshold.\n\nDetails:\n${overloadedList}\n\nCapacity Analysis:\nRahul Verma is operating at 95% utilization with 4 active tasks. Marcus Lindqvist is at 78% (Steady Load). Average workforce utilization across the organization is ${summary.avgWorkloadPercentage}%.\n\nRecommendation:\nConsider reallocating non-critical tasks from Rahul Verma to available personnel such as Priya Sundaram (42% load) or Sofia Al-Mansoor (38% load).`;
-
-      return {
-        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-        executionSteps: steps,
-      };
-    }
-
-    // Scenario D: "Give me the current workforce summary" / "How many employees available"
-    if (qLower.includes('workforce summary') || qLower.includes('how many employees') || qLower.includes('available capacity') || qLower.includes('low utilization')) {
-      steps.push({ toolName: 'get_workforce_summary', resultSummary: 'Retrieved complete workforce telemetry summary' });
-      const summary = this.get_workforce_summary();
-
-      const text = `Workforce Status Summary\n\nCurrent organizational capacity and allocation status across all engineering teams.\n\nDetails:\n• Total Active Headcount: ${summary.totalEmployees} personnel\n• Average Workforce Utilization: ${summary.avgWorkloadPercentage}%\n• Overloaded Personnel (>85%): ${summary.overloadedCount}\n• Available Capacity Headroom: ${summary.availableHeadroomCount} engineers\n• Active Tasks In Progress: ${summary.totalTasks}\n• Unassigned Tasks: ${summary.unassignedTasksCount}\n• SLA Compliance Rate: ${summary.slaComplianceRate}%\n\nRecommendation:\nWorkforce distribution remains operational. High-utilization alerts are localized to Platform Engineering.`;
-
-      return {
-        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-        executionSteps: steps,
-      };
-    }
-
-    // Scenario E: "Show me all unassigned tasks" / "Which tasks are critical"
-    if (qLower.includes('unassigned') || qLower.includes('critical tasks') || qLower.includes('tasks at risk') || qLower.includes('due soon')) {
-      steps.push({ toolName: 'get_tasks', resultSummary: 'Retrieved task matrix' });
-      steps.push({ toolName: 'get_unassigned_tasks', resultSummary: 'Filtered unassigned/at-risk tasks' });
-
-      const criticalTasks = this.tasks.filter((t) => t.priority === 'Critical' || t.status === 'Critical Breach');
-      const unassigned = this.get_unassigned_tasks();
-
-      const text = `Task Matrix & SLA Exposure Summary\n\nAnalysis of critical path items and pending task assignments.\n\nCritical & At-Risk Tasks:\n${criticalTasks.map((t) => `• ${t.taskCode}: ${t.taskName} (${t.priority} Priority, Assigned to: ${t.assignedEmployeeName}, SLA: ${t.remainingSla})`).join('\n')}\n\nUnassigned Queue:\n${unassigned.length > 0 ? unassigned.map((u) => `• ${u.code}: ${u.name} (${u.effort})`).join('\n') : '• All active tasks currently possess assigned personnel.'}\n\nRecommendation:\nPrioritize task CACHE-104 and INGEST-902 as remaining SLA windows are under 4 hours.`;
-
-      return {
-        message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-        executionSteps: steps,
-      };
-    }
-
-    // Scenario F: "What tasks are assigned to Rahul?" / Specific employee tasks
+    // 12. SPECIFIC EMPLOYEE TASKS
     if (targetEmployee && (qLower.includes('tasks') || qLower.includes('assigned to') || qLower.includes('workload'))) {
       steps.push({ toolName: 'get_worker_details', args: { query: targetEmployee.name }, resultSummary: `Fetched tasks for ${targetEmployee.name}` });
       const details = this.get_worker_details(targetEmployee.name);
@@ -521,7 +598,7 @@ class WorkforceAgentEngine {
       };
     }
 
-    // Scenario G: "What skills do we currently have?" / "Skill gaps"
+    // 13. SKILLS & COMPETENCY
     if (qLower.includes('skill') || qLower.includes('competency') || qLower.includes('kubernetes') || qLower.includes('cloud')) {
       steps.push({ toolName: 'get_skills', resultSummary: 'Retrieved skill inventory' });
       steps.push({ toolName: 'get_skill_gaps', resultSummary: 'Analyzed skill gap telemetry' });
@@ -536,9 +613,8 @@ class WorkforceAgentEngine {
       };
     }
 
-    // Scenario H: Allocation Action ("Assign task CACHE-104 to Priya", "Assign this task to Priya")
+    // 14. ALLOCATION ACTION
     if (qLower.includes('assign') || qLower.includes('reallocate')) {
-      // Find candidate and task
       const workerCandidate = this.employees.find((e) => qLower.includes(e.name.toLowerCase()) || qLower.includes(e.name.split(' ')[0].toLowerCase())) || this.employees.find((e) => e.name.includes('Priya'));
       const taskCandidate = this.tasks.find((t) => qLower.includes(t.taskCode.toLowerCase()) || qLower.includes(t.id.toLowerCase())) || this.tasks[0];
 
@@ -555,15 +631,15 @@ class WorkforceAgentEngine {
       }
     }
 
-    // Default Fallback query handling with tool execution
-    steps.push({ toolName: 'get_workforce_summary', resultSummary: 'Retrieved general workforce telemetry' });
-    const summary = this.get_workforce_summary();
-
-    const text = `Workforce Intelligence Query Response\n\nI have analyzed current workforce state regarding your request: "${query}".\n\nTelemetry Overview:\n• Total Active Headcount: ${summary.totalEmployees} personnel\n• Average Utilization: ${summary.avgWorkloadPercentage}%\n• Overloaded Headcount: ${summary.overloadedCount} personnel\n• Unassigned Tasks: ${summary.unassignedTasksCount}\n\nRecommendation:\nPlease specify if you would like me to evaluate specific personnel, task SLA exposures, or skill competency gaps.`;
-
+    // 15. DEFAULT CLEAN RESPONSE (NO FAKE TELEMETRY SUMMARY FOR UNRELATED QUERIES)
     return {
-      message: { id: `msg-${Date.now()}`, sender: 'assistant', text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-      executionSteps: steps,
+      message: {
+        id: `msg-${Date.now()}`,
+        sender: 'assistant',
+        text: `I am ready to assist with workforce planning. Could you please specify whether you would like to view employee capacity, task SLA exposures, unassigned tasks, skill intelligence, or allocation conflicts?`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+      executionSteps: [],
     };
   }
 }
