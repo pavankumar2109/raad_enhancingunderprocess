@@ -36,10 +36,12 @@ export const CopilotPage: React.FC = () => {
   const [appliedNotice, setAppliedNotice] = useState('');
 
   const suggestedPrompts = [
-    "Audit critical SLA risks across engineering queues",
-    "Simulate Q4 platform engineering capacity balance",
-    "Evaluate skill gap vulnerabilities in Nordic cluster",
-    "Reassign Rahul's critical tasks to prevent SLA default"
+    "Who is currently overloaded?",
+    "Give me the current workforce summary",
+    "Which tasks are unassigned?",
+    "Find the best employee for this task",
+    "Are there any allocation conflicts?",
+    "What happens if Rahul becomes unavailable?"
   ];
 
   const handleSendPrompt = async (promptText?: string) => {
@@ -84,13 +86,13 @@ export const CopilotPage: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded">
-            ✦ AUTONOMOUS ENTERPRISE EXECUTIVE AGENT
+            ✦ WORKFORCE DECISION & RESOURCE ALLOCATION ASSISTANT
           </span>
           <h1 className="text-3xl font-extrabold text-slate-900 font-serif tracking-tight mt-1">
-            RAAD Executive Agent
+            AI Workforce Manager
           </h1>
           <p className="text-xs text-slate-600 mt-1 max-w-3xl">
-            Autonomous formal agent for real-time resource orchestration, SLA risk governance, and executive decision support.
+            Professional AI assistant for workforce planning, task allocation, workload analysis, skill intelligence, conflict detection, and decision support.
           </p>
         </div>
 
@@ -98,15 +100,15 @@ export const CopilotPage: React.FC = () => {
         <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-4 text-xs shadow-2xs">
           <div>
             <span className="text-[10px] text-slate-400 font-mono block">AGENT ENGINE</span>
-            <span className="font-bold text-slate-900 font-mono">RAAD Executive v5.0</span>
+            <span className="font-bold text-slate-900 font-mono">Workforce-Manager v5.2</span>
           </div>
           <div className="border-l border-slate-200 pl-3">
             <span className="text-[10px] text-slate-400 font-mono block">LATENCY</span>
-            <span className="font-bold text-slate-900 font-mono">95ms</span>
+            <span className="font-bold text-slate-900 font-mono">90ms</span>
           </div>
           <div className="border-l border-slate-200 pl-3">
             <span className="text-[10px] text-slate-400 font-mono block">CONFIDENCE</span>
-            <span className="font-bold text-emerald-700 font-mono">99.2%</span>
+            <span className="font-bold text-emerald-700 font-mono">99.5%</span>
           </div>
           <div className="border-l border-slate-200 pl-3">
             <span className="text-[10px] uppercase font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded font-mono">

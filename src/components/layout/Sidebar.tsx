@@ -26,7 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/employees', label: 'Employees', icon: Users },
     { path: '/tasks', label: 'Tasks', icon: ClipboardList },
-    { path: '/copilot', label: 'RAAD Agent', icon: Sparkles, badge: '✦ AGENT', badgeClass: 'bg-amber-100 text-amber-900 font-bold border border-amber-300' },
+    { path: '/copilot', label: 'AI Workforce Manager', icon: Sparkles, badge: '✦ AGENT', badgeClass: 'bg-amber-100 text-amber-900 font-bold border border-amber-300' },
     { path: '/reallocation', label: 'Reallocation', icon: RefreshCw },
     { path: '/skills', label: 'Skills', icon: Award },
     { path: '/analytics', label: 'Analytics', icon: LineChart },

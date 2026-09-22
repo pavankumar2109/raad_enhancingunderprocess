@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenReallocationModal }) => {
       case '/': return 'Command Center';
       case '/employees': return 'Employee Directory';
       case '/tasks': return 'Task Matrix';
-      case '/copilot': return 'RAAD Executive Agent';
+      case '/copilot': return 'AI Workforce Manager';
       case '/reallocation': return 'Reallocation Planner';
       case '/skills': return 'Skill Competency & Gaps';
       case '/analytics': return 'Workforce Analytics';
